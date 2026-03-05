@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover" />
-  <title>勤怠＋走行距離（スマホ完結）</title>
+  <title>勤怠＋走行距離（今日入力＋編集）</title>
   <style>
     :root{
       --bg:#0b0f14;
@@ -16,12 +16,11 @@
       --ok:#32d583;
       --warn:#fdb022;
       --bad:#ff6b6b;
-      --chip:#1b2a42;
       --shadow: 0 10px 30px rgba(0,0,0,.35);
       --radius: 16px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --sans: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
-      --tap: 44px;
+      --tap: 46px;
     }
     *{box-sizing:border-box}
     body{
@@ -34,30 +33,69 @@
       line-height:1.45;
       -webkit-tap-highlight-color: transparent;
     }
+
     header{
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 20;
       padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
-      background: rgba(11,15,20,.72);
+      background: rgba(11,15,20,.74);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(255,255,255,.06);
     }
-    .top{
-      max-width: 980px;
-      margin: 0 auto;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+    .wrap{max-width:980px;margin:0 auto}
+    .titleRow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    h1{margin:0;font-size:16px;letter-spacing:.2px}
+    .sub{color:var(--muted);font-size:12px;margin-top:2px}
+    .tabs{
+      display:flex; gap:10px; margin-top:10px;
     }
-    h1{margin:0; font-size:16px; letter-spacing:.2px}
-    .sub{color:var(--muted); font-size:12px}
-    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
-    input, select, textarea, button{
-      font: inherit;
+    .tabBtn{
+      flex: 1 1 0;
+      min-height: var(--tap);
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.06));
       color: var(--text);
+      cursor:pointer;
+      font-weight: 800;
+      letter-spacing:.2px;
     }
+    .tabBtn.active{
+      border-color: rgba(102,166,255,.40);
+      background: linear-gradient(180deg, rgba(102,166,255,.24), rgba(0,0,0,.06));
+    }
+
+    main{max-width:980px;margin:0 auto;padding:12px 14px 26px;display:grid;gap:12px}
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent 40%), var(--panel);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .hd{
+      padding: 12px 12px 10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap
+    }
+    .hd h2{margin:0;font-size:13px;letter-spacing:.2px;color:#dfe8fb}
+    .chip{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:7px 10px;border-radius:999px;
+      background: rgba(27,42,66,.65);
+      border:1px solid rgba(255,255,255,.08);
+      color:#cfe0ff;font-size:12px;white-space:nowrap
+    }
+    .chip b{font-family:var(--mono);font-weight:900}
+
+    .bd{padding:12px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:520px){ .grid2{grid-template-columns:1fr} }
+
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input, select, textarea, button{font:inherit;color:var(--text)}
     input, select, textarea{
       width:100%;
       padding:12px 12px;
@@ -71,187 +109,105 @@
       border-color: rgba(102,166,255,.55);
       box-shadow: 0 0 0 3px rgba(102,166,255,.15);
     }
-    textarea{min-height:90px; resize:vertical}
+    textarea{min-height:90px;resize:vertical}
 
     .btn{
       min-height: var(--tap);
-      padding: 10px 12px;
-      border-radius: 14px;
+      padding:10px 12px;
+      border-radius:14px;
       border:1px solid rgba(255,255,255,.10);
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.06));
       cursor:pointer;
-      width: 100%;
+      width:100%;
+      font-weight:800;
     }
-    .btn:active{ transform: translateY(1px); }
     .btn.primary{
-      border-color: rgba(102,166,255,.35);
-      background: linear-gradient(180deg, rgba(102,166,255,.22), rgba(0,0,0,.06));
+      border-color: rgba(102,166,255,.40);
+      background: linear-gradient(180deg, rgba(102,166,255,.24), rgba(0,0,0,.06));
     }
     .btn.danger{
-      border-color: rgba(255,107,107,.35);
+      border-color: rgba(255,107,107,.40);
       background: linear-gradient(180deg, rgba(255,107,107,.18), rgba(0,0,0,.06));
     }
-    .btn.small{ min-height: 40px; padding: 8px 10px; border-radius: 12px; }
-
-    main{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 12px 14px 26px;
-      display:grid;
-      gap: 12px;
-    }
-
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent 40%), var(--panel);
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-    .hd{
-      padding: 12px 12px 10px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .hd h2{
-      margin:0;
-      font-size:13px;
-      letter-spacing:.2px;
-      color:#dfe8fb;
-    }
-    .bd{ padding: 12px; }
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      background: rgba(27,42,66,.65);
-      border:1px solid rgba(255,255,255,.08);
-      color: #cfe0ff;
-      font-size:12px;
-      white-space:nowrap;
-    }
-    .chip b{font-family:var(--mono); font-weight:800}
-
-    .kpis{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-    @media (max-width: 420px){
-      .kpis{ grid-template-columns: 1fr; }
-    }
-    .kpi{
-      padding: 12px;
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.06));
-      border: 1px solid rgba(255,255,255,.07);
-    }
-    .kpi .t{ font-size:12px; color: var(--muted); }
-    .kpi .v{
-      font-size: 18px;
-      font-family: var(--mono);
-      font-weight: 900;
-      letter-spacing:.2px;
-      margin-top: 4px;
-    }
-
+    .btn.small{min-height:40px;padding:8px 10px;border-radius:12px;font-weight:800}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .num{font-family:var(--mono)}
+    .right{text-align:right}
     .hint{
-      padding: 12px;
-      border-radius: 16px;
+      padding:12px;border-radius:16px;
       border:1px dashed rgba(255,255,255,.14);
       background: rgba(0,0,0,.12);
-      color:#c9d7ee;
-      font-size: 12px;
+      color:#c9d7ee;font-size:12px
     }
 
-    /* Day cards */
-    .days{
-      display:grid;
-      gap: 10px;
-    }
-    .day{
-      border:1px solid rgba(255,255,255,.07);
-      background: rgba(15,22,34,.6);
-      border-radius: 18px;
-      overflow:hidden;
-    }
-    .dayTop{
-      padding: 10px 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-    }
-    .dayTitle{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-    }
-    .dayTitle .d{
-      font-family: var(--mono);
-      font-weight: 900;
-      letter-spacing:.2px;
-    }
-    .dayTitle .w{ font-size:12px; color: var(--muted); }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 6px 10px;
+    .statusRow{display:flex;gap:8px;flex-wrap:wrap}
+    .statusBtn{
+      flex: 1 1 120px;
+      min-height: 44px;
       border-radius: 999px;
       border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      font-size: 12px;
-      white-space:nowrap;
+      background: rgba(0,0,0,.16);
+      cursor:pointer;
+      font-weight:900;
     }
-    .wk-sat{color:#8bb7ff}
-    .wk-sun{color:#ff9aa0}
+    .statusBtn.active{
+      border-color: rgba(102,166,255,.55);
+      box-shadow: 0 0 0 3px rgba(102,166,255,.12);
+      background: rgba(102,166,255,.18);
+    }
 
-    .dayBody{
-      padding: 12px;
-      display:grid;
-      gap: 10px;
-    }
-    .grid2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-    @media (max-width: 520px){
-      .grid2{ grid-template-columns: 1fr; }
-    }
-    .right{ text-align:right }
-    .muted{ color: var(--muted); }
-    .small{ font-size:12px; }
-    .num{ font-family: var(--mono); }
-
-    .statusBar{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:6px 10px;
-      border-radius:999px;
+    .quickRow{display:flex;gap:8px;flex-wrap:wrap}
+    .quickBtn{
+      flex: 1 1 86px;
+      min-height: 40px;
+      border-radius: 12px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.14);
-      font-size:12px;
+      cursor:pointer;
+      font-weight:900;
     }
-    .badge.work{ border-color: rgba(102,166,255,.30); }
-    .badge.off{ border-color: rgba(253,176,34,.30); }
-    .badge.paid{ border-color: rgba(50,213,131,.30); }
-    .badge.sub{ border-color: rgba(139,183,255,.30); }
-    .badge.abs{ border-color: rgba(255,107,107,.30); }
+
+    .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:420px){ .kpis{grid-template-columns:1fr} }
+    .kpi{
+      padding:12px;border-radius:16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.06));
+      border:1px solid rgba(255,255,255,.07);
+    }
+    .kpi .t{font-size:12px;color:var(--muted)}
+    .kpi .v{margin-top:4px;font-size:18px;font-family:var(--mono);font-weight:950;letter-spacing:.2px}
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      border-radius: 16px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+      background: var(--panel2);
+    }
+    thead th{
+      position: sticky;
+      top: 0;
+      background: rgba(17,24,38,.92);
+      backdrop-filter: blur(6px);
+      z-index: 1;
+    }
+    th, td{
+      border-bottom:1px solid rgba(255,255,255,.06);
+      padding:10px 8px;
+      font-size:12px;
+      vertical-align:top;
+    }
+    th{color:#cfe0ff;text-align:left;font-weight:900;letter-spacing:.2px}
+    tr:last-child td{border-bottom:none}
+    .col-date{width:96px}
+    .col-st{width:76px}
+    .col-time{width:86px}
+    .col-num{width:140px}
+    .col-dist{width:120px}
+    .col-note{min-width:180px}
 
     .footer{
       padding: 0 14px 18px;
@@ -260,55 +216,140 @@
       color: var(--muted);
       font-size: 12px;
     }
+
+    .hidden{display:none !important}
   </style>
 </head>
 <body>
 
 <header>
-  <div class="top">
-    <div>
-      <h1>勤怠＋走行距離（スマホ完結）</h1>
-      <div class="sub">出勤08:00固定／休日・有休チェック／オドメ差分は自動計算（過去編集OK）</div>
+  <div class="wrap">
+    <div class="titleRow">
+      <div>
+        <h1>勤怠＋走行距離</h1>
+        <div class="sub">起動＝今日入力／編集＝月の確認・修正・CSV</div>
+      </div>
+      <span class="chip">保存先：<b>localStorage</b></span>
     </div>
 
-    <div class="row">
-      <div style="flex:1 1 140px">
-        <label>対象月</label>
-        <input id="monthPicker" type="month" />
-      </div>
-      <div style="flex:1 1 140px">
-        <label>月初オドメーター（基準）</label>
-        <input id="monthBaseOdo" type="number" step="0.1" placeholder="例：12345.6" />
-      </div>
-      <div style="flex:1 1 110px">
-        <label>出勤（固定）</label>
-        <input type="time" value="08:00" disabled />
-      </div>
-    </div>
-
-    <div class="row">
-      <button class="btn primary" id="btnSaveAll" style="flex:1 1 140px">保存</button>
-      <button class="btn" id="btnExportCsv" style="flex:1 1 140px">CSV</button>
-      <button class="btn" id="btnBackup" style="flex:1 1 140px">JSONバックアップ</button>
-      <button class="btn" id="btnRestore" style="flex:1 1 140px">JSON復元</button>
+    <div class="tabs">
+      <button id="tabToday" class="tabBtn active">今日の入力</button>
+      <button id="tabEdit" class="tabBtn">編集・CSV</button>
     </div>
   </div>
 </header>
 
 <main>
-  <section class="card">
+  <!-- TODAY VIEW -->
+  <section id="viewToday" class="card">
     <div class="hd">
-      <h2>月集計</h2>
-      <span class="chip">保存先：<b>localStorage</b></span>
+      <h2>今日の入力（ここだけ触ればOK）</h2>
+      <span class="chip">日付：<b id="todayDateLabel" class="num">----</b></span>
     </div>
     <div class="bd">
-      <div class="kpis">
+      <div class="hint" style="margin-bottom:10px">
+        <b>運用：</b> 普段は「オドメーター」だけ入れて確定 → 距離は月末に自動集計。<br/>
+        オドメが無い日は「走行距離（実走）」に入れて確定。
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>ステータス</label>
+          <div class="statusRow">
+            <button class="statusBtn active" data-st="work">稼働</button>
+            <button class="statusBtn" data-st="off">休日</button>
+            <button class="statusBtn" data-st="paid">有休</button>
+            <button class="statusBtn" data-st="abs">欠勤</button>
+          </div>
+          <div class="muted small" style="margin-top:6px">
+            休日/有休/欠勤の日は、退勤は空でもOKです。
+          </div>
+        </div>
+
+        <div>
+          <label>出勤時間</label>
+          <input id="tIn" type="time" value="08:00" />
+          <div class="muted small" style="margin-top:6px">
+            毎日8:00なら触らなくてOK。必要なら日別に変更できます。
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:10px">
+        <div>
+          <label>走行距離（実走km）</label>
+          <input id="tManualKm" type="number" step="0.1" inputmode="decimal" placeholder="例：12.3" />
+        </div>
+        <div>
+          <label>オドメーター（終業時）</label>
+          <input id="tEndOdo" type="number" step="0.1" inputmode="decimal" placeholder="例：12345.6" />
+          <div class="muted small" style="margin-top:6px">
+            入れると前日との差分で距離を自動計算します（編集画面で確認）。
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:10px">
+        <div>
+          <label>退勤（任意）</label>
+          <input id="tOut" type="time" placeholder="例：17:30" />
+          <div class="quickRow" style="margin-top:8px">
+            <button class="quickBtn" data-out="17:00">17:00</button>
+            <button class="quickBtn" data-out="17:30">17:30</button>
+            <button class="quickBtn" data-out="18:00">18:00</button>
+            <button class="quickBtn" data-out="19:00">19:00</button>
+          </div>
+        </div>
+        <div>
+          <label>メモ（任意）</label>
+          <input id="tNote" type="text" placeholder="例：現場A→B、直行直帰、給油など" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button id="btnConfirmToday" class="btn primary" style="flex:2 1 240px">入力確定（保存）</button>
+        <button id="btnGoEdit" class="btn" style="flex:1 1 160px">編集画面へ</button>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div class="chip">今日の保存先（月）：<b id="todayYMLabel" class="num">----</b></div>
+        <div class="chip">今日の距離(参考)：<b id="todayDistHint" class="num">—</b> km</div>
+      </div>
+
+      <div class="muted small" style="margin-top:10px">
+        ※「今日の距離(参考)」は、月初基準や前日オドメが入っていると計算できます。未設定なら「—」になります。
+      </div>
+    </div>
+  </section>
+
+  <!-- EDIT VIEW -->
+  <section id="viewEdit" class="card hidden">
+    <div class="hd">
+      <h2>編集・CSV（確認と修正）</h2>
+      <span class="chip">対象月：<b id="editYMLabel" class="num">----</b></span>
+    </div>
+    <div class="bd">
+      <div class="grid2">
+        <div>
+          <label>対象月</label>
+          <input id="monthPicker" type="month" />
+        </div>
+        <div>
+          <label>月初オドメーター（基準）</label>
+          <input id="monthBaseOdo" type="number" step="0.1" inputmode="decimal" placeholder="例：12345.6" />
+          <div class="muted small" style="margin-top:6px">
+            ここを入れると、1日目の距離も自動計算できます。
+          </div>
+        </div>
+      </div>
+
+      <div class="kpis" style="margin-top:10px">
         <div class="kpi">
           <div class="t">走行距離（オドメ差分合計）</div>
           <div class="v"><span id="kpiOdoSum">0.0</span> km</div>
         </div>
         <div class="kpi">
-          <div class="t">走行距離（実走入力合計）</div>
+          <div class="t">走行距離（実走合計）</div>
           <div class="v"><span id="kpiManualSum">0.0</span> km</div>
         </div>
         <div class="kpi">
@@ -316,43 +357,55 @@
           <div class="v"><span id="kpiTotal">0.0</span> km</div>
         </div>
         <div class="kpi">
-          <div class="t">稼働日 / 休日 / 有休 / 欠勤</div>
+          <div class="t">稼働 / 休日 / 有休 / 欠勤</div>
           <div class="v"><span id="kpiDays">0 / 0 / 0 / 0</span></div>
         </div>
       </div>
 
+      <div class="row" style="margin-top:10px">
+        <button id="btnSaveMonth" class="btn primary" style="flex:1 1 180px">この月を保存</button>
+        <button id="btnExportCsv" class="btn" style="flex:1 1 180px">CSV出力</button>
+        <button id="btnBackup" class="btn" style="flex:1 1 180px">JSONバックアップ</button>
+        <button id="btnRestore" class="btn" style="flex:1 1 180px">JSON復元</button>
+      </div>
+
+      <textarea id="jsonBox" placeholder="JSONバックアップ／復元用（ここに出ます・ここに貼って復元）" style="margin-top:10px"></textarea>
+
+      <div class="row" style="margin-top:10px">
+        <button id="btnClearMonth" class="btn danger" style="flex:1 1 240px">この月を全消去</button>
+        <button id="btnBackToday" class="btn" style="flex:1 1 240px">今日の入力へ</button>
+      </div>
+
       <div class="hint" style="margin-top:10px">
-        <b>入力のコツ：</b><br/>
-        ・普段は「終業時オドメーター」だけ入れる<br/>
-        ・オドメが不明な日は「実走距離」を入れる<br/>
-        ・休日/有休はステータスを変えるだけでOK（退勤は空でOK）
-      </div>
-    </div>
-  </section>
-
-  <section class="card">
-    <div class="hd">
-      <h2>日別（カード表示）</h2>
-      <span class="chip">距離は<b>自動再計算</b></span>
-    </div>
-    <div class="bd">
-      <div class="row" style="margin-bottom:10px">
-        <button class="btn small" id="btnToday" style="flex:1 1 100px">今日へ</button>
-        <button class="btn small" id="btnPrev" style="flex:1 1 100px">前日</button>
-        <button class="btn small" id="btnNext" style="flex:1 1 100px">翌日</button>
-        <button class="btn small danger" id="btnClearMonth" style="flex:1 1 160px">この月を全消去</button>
+        <b>編集のポイント：</b><br/>
+        ・過去日のオドメを直すと、後続日の「差分距離」も自動で追従します。<br/>
+        ・差分がマイナスになる日は「—」になります（入力ミス or メーターリセット想定）。
       </div>
 
-      <div id="days" class="days"></div>
-
-      <textarea id="jsonBox" placeholder="JSONバックアップ／復元用（ここに出ます・ここに貼って復元）" style="margin-top:12px"></textarea>
+      <div style="margin-top:12px; overflow:auto; max-height: 60vh;">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-date">日付</th>
+              <th class="col-st">区分</th>
+              <th class="col-time">出勤</th>
+              <th class="col-time">退勤</th>
+              <th class="col-num">終業時オドメ</th>
+              <th class="col-dist right">距離(差分)</th>
+              <th class="col-dist right">実走</th>
+              <th class="col-note">メモ</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
     </div>
   </section>
 </main>
 
 <div class="footer">
-  ※データはこの端末のブラウザ内に保存されます（端末を変えると別データ）。<br/>
-  ※複数端末で使いたい場合は、次に「Googleスプレッドシート同期版」にします。
+  ※保存はこの端末・このブラウザ（Safari）内です。URLが同じなら維持されます。<br/>
+  ※機種変更や万一に備えて、月末に「JSONバックアップ」をおすすめします。
 </div>
 
 <script>
@@ -364,9 +417,6 @@
   const fmt1 = (n) => (Math.round(n * 10) / 10).toFixed(1);
 
   const weekdays = ["日","月","火","水","木","金","土"];
-  const weekClass = (w) => w === 0 ? "wk-sun" : (w === 6 ? "wk-sat" : "");
-
-  const storageKey = (ym) => `kintai_drive_mobile:${ym}`; // ym = YYYY-MM
 
   function daysInMonth(year, month1to12){
     return new Date(year, month1to12, 0).getDate();
@@ -378,57 +428,54 @@
     return Number.isFinite(n) ? n : null;
   }
 
+  function todayDateStr(){
+    const d = new Date();
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
+  function ymFromDate(dateStr){
+    return dateStr.slice(0,7); // YYYY-MM
+  }
   function todayMonthValue(){
     const d = new Date();
     return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
   }
 
-  function todayDateStr(){
-    const d = new Date();
-    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-  }
-
-  // Status
-  // work: 稼働
-  // off: 休日
-  // paid: 有休
-  // sub: 振休
-  // abs: 欠勤
+  // Status mapping
   const STATUS = [
-    { key:"work", label:"稼働", cls:"work" },
-    { key:"off",  label:"休日", cls:"off"  },
-    { key:"paid", label:"有休", cls:"paid" },
-    { key:"sub",  label:"振休", cls:"sub"  },
-    { key:"abs",  label:"欠勤", cls:"abs"  },
+    { key:"work", label:"稼働" },
+    { key:"off",  label:"休日" },
+    { key:"paid", label:"有休" },
+    { key:"abs",  label:"欠勤" },
   ];
+  const statusLabel = (k) => (STATUS.find(x=>x.key===k)||STATUS[0]).label;
 
   // -------------------------
-  // Data Model
+  // Storage model per month
   // monthData = {
   //   baseOdo: number|null,
-  //   days: { "YYYY-MM-DD": { status:"work", outTime:"", endOdo:number|null, manualKm:number|null, note:"" } }
+  //   days: { "YYYY-MM-DD": { status, inTime, outTime, endOdo, manualKm, note } }
   // }
   // -------------------------
+  const storageKey = (ym) => `kintai_drive_v3:${ym}`;
+
   function defaultDay(){
-    return { status:"work", outTime:"", endOdo:null, manualKm:null, note:"" };
+    return { status:"work", inTime:"08:00", outTime:"", endOdo:null, manualKm:null, note:"" };
   }
   function defaultMonthData(){
-    return { baseOdo: null, days: {} };
+    return { baseOdo:null, days:{} };
   }
-
   function loadMonth(ym){
     const raw = localStorage.getItem(storageKey(ym));
     if (!raw) return defaultMonthData();
     try{
       const obj = JSON.parse(raw);
       if (!obj || typeof obj !== "object") return defaultMonthData();
-      if (!("days" in obj)) obj.days = {};
+      if (!obj.days) obj.days = {};
       return obj;
     }catch{
       return defaultMonthData();
     }
   }
-
   function saveMonth(ym, data){
     localStorage.setItem(storageKey(ym), JSON.stringify(data));
   }
@@ -436,216 +483,270 @@
   // -------------------------
   // DOM
   // -------------------------
-  const elMonthPicker = document.getElementById("monthPicker");
-  const elBaseOdo = document.getElementById("monthBaseOdo");
-  const elDays = document.getElementById("days");
+  const tabToday = document.getElementById("tabToday");
+  const tabEdit  = document.getElementById("tabEdit");
+  const viewToday = document.getElementById("viewToday");
+  const viewEdit  = document.getElementById("viewEdit");
 
-  const elKpiOdoSum = document.getElementById("kpiOdoSum");
-  const elKpiManualSum = document.getElementById("kpiManualSum");
-  const elKpiTotal = document.getElementById("kpiTotal");
-  const elKpiDays = document.getElementById("kpiDays");
+  const todayDateLabel = document.getElementById("todayDateLabel");
+  const todayYMLabel = document.getElementById("todayYMLabel");
+  const todayDistHint = document.getElementById("todayDistHint");
 
-  const elJsonBox = document.getElementById("jsonBox");
+  const tIn = document.getElementById("tIn");
+  const tManualKm = document.getElementById("tManualKm");
+  const tEndOdo = document.getElementById("tEndOdo");
+  const tOut = document.getElementById("tOut");
+  const tNote = document.getElementById("tNote");
 
-  const btnSaveAll = document.getElementById("btnSaveAll");
+  const btnConfirmToday = document.getElementById("btnConfirmToday");
+  const btnGoEdit = document.getElementById("btnGoEdit");
+
+  const editYMLabel = document.getElementById("editYMLabel");
+  const monthPicker = document.getElementById("monthPicker");
+  const monthBaseOdo = document.getElementById("monthBaseOdo");
+  const tbody = document.getElementById("tbody");
+
+  const kpiOdoSum = document.getElementById("kpiOdoSum");
+  const kpiManualSum = document.getElementById("kpiManualSum");
+  const kpiTotal = document.getElementById("kpiTotal");
+  const kpiDays = document.getElementById("kpiDays");
+
+  const btnSaveMonth = document.getElementById("btnSaveMonth");
   const btnExportCsv = document.getElementById("btnExportCsv");
   const btnBackup = document.getElementById("btnBackup");
   const btnRestore = document.getElementById("btnRestore");
   const btnClearMonth = document.getElementById("btnClearMonth");
+  const btnBackToday = document.getElementById("btnBackToday");
+  const jsonBox = document.getElementById("jsonBox");
 
-  const btnToday = document.getElementById("btnToday");
-  const btnPrev = document.getElementById("btnPrev");
-  const btnNext = document.getElementById("btnNext");
+  // quick out buttons
+  document.querySelectorAll(".quickBtn").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      tOut.value = b.dataset.out || "";
+    });
+  });
+
+  // status buttons
+  const statusBtns = Array.from(document.querySelectorAll(".statusBtn"));
+  let todayStatus = "work";
+  function setTodayStatus(st){
+    todayStatus = st;
+    statusBtns.forEach(b => b.classList.toggle("active", b.dataset.st === st));
+  }
+  statusBtns.forEach(b=>{
+    b.addEventListener("click", ()=> setTodayStatus(b.dataset.st));
+  });
 
   // -------------------------
   // State
   // -------------------------
-  let currentYM = "";
-  let monthData = defaultMonthData();
-  let distOdo = {}; // dateStr -> number|null
-  let focusedDate = null; // for navigation
+  const todayDate = todayDateStr();
+  let currentYM = todayMonthValue();
+  let monthData = loadMonth(currentYM);
+  let distOdo = {}; // date -> number|null
 
   // -------------------------
-  // Distance computation (same logic as before)
+  // Distance computation
   // -------------------------
-  function recomputeDistances(){
-    distOdo = {};
-    const base = safeNum(elBaseOdo.value);
-    monthData.baseOdo = base;
-
-    const [Y, M] = currentYM.split("-").map(Number);
+  function recomputeDistances(ym, data){
+    const out = {};
+    const [Y,M] = ym.split("-").map(Number);
     const dim = daysInMonth(Y, M);
+    const base = safeNum(monthBaseOdo.value);
+    data.baseOdo = base;
 
-    let prevOdo = base;
-    let havePrev = (prevOdo != null);
+    let prev = base;
+    let havePrev = (prev != null);
 
     for (let d=1; d<=dim; d++){
-      const date = `${currentYM}-${pad2(d)}`;
-      const day = monthData.days[date] || defaultDay();
+      const date = `${ym}-${pad2(d)}`;
+      const day = data.days[date] || defaultDay();
       const end = safeNum(day.endOdo);
-
       if (end == null){
-        distOdo[date] = null;
+        out[date] = null;
         continue;
       }
-
       if (havePrev){
-        const diff = end - prevOdo;
-        distOdo[date] = (diff >= 0 && Number.isFinite(diff)) ? diff : null;
+        const diff = end - prev;
+        out[date] = (diff >= 0 && Number.isFinite(diff)) ? diff : null;
       } else {
-        distOdo[date] = null;
+        out[date] = null;
       }
-
-      prevOdo = end;
+      prev = end;
       havePrev = true;
     }
+    return out;
   }
 
-  function updateKpis(){
-    const [Y, M] = currentYM.split("-").map(Number);
-    const dim = daysInMonth(Y, M);
+  function computeTodayHint(){
+    // Try compute today's diff using current month settings
+    const ym = ymFromDate(todayDate);
+    const md = loadMonth(ym);
+    // create a fake base input for compute: if edit view not open, we still try from md.baseOdo
+    const base = safeNum(md.baseOdo);
+    const [Y,M] = ym.split("-").map(Number);
+    const dim = daysInMonth(Y,M);
+    let prev = base;
+    let havePrev = (prev != null);
+    for (let d=1; d<=dim; d++){
+      const date = `${ym}-${pad2(d)}`;
+      const day = md.days[date] || defaultDay();
+      const end = safeNum(day.endOdo);
+      if (end != null){
+        if (date === todayDate){
+          if (havePrev){
+            const diff = end - prev;
+            return (diff >= 0 && Number.isFinite(diff)) ? diff : null;
+          }
+          return null;
+        }
+        prev = end;
+        havePrev = true;
+      }
+    }
+    return null;
+  }
 
-    let sumOdo = 0;
-    let sumManual = 0;
+  // -------------------------
+  // View switching
+  // -------------------------
+  function showToday(){
+    tabToday.classList.add("active");
+    tabEdit.classList.remove("active");
+    viewToday.classList.remove("hidden");
+    viewEdit.classList.add("hidden");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+  function showEdit(){
+    tabEdit.classList.add("active");
+    tabToday.classList.remove("active");
+    viewEdit.classList.remove("hidden");
+    viewToday.classList.add("hidden");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+  tabToday.addEventListener("click", showToday);
+  tabEdit.addEventListener("click", showEdit);
+  btnGoEdit.addEventListener("click", ()=>{ syncEditTo(todayYMLabel.textContent); showEdit(); });
+  btnBackToday.addEventListener("click", ()=>{ showToday(); });
 
-    let work = 0, off = 0, paid = 0, abs = 0; // sub is treated as off-like but counted separately? here count in off bucket? -> separate not requested
-    let sub = 0;
+  // -------------------------
+  // Render Today
+  // -------------------------
+  function loadTodayForm(){
+    todayDateLabel.textContent = todayDate;
+    const ym = ymFromDate(todayDate);
+    todayYMLabel.textContent = ym;
+
+    const md = loadMonth(ym);
+    const day = md.days[todayDate] || defaultDay();
+
+    setTodayStatus(day.status || "work");
+    tIn.value = day.inTime || "08:00";
+    tOut.value = day.outTime || "";
+    tEndOdo.value = (day.endOdo ?? "");
+    tManualKm.value = (day.manualKm ?? "");
+    tNote.value = day.note || "";
+
+    const hint = computeTodayHint();
+    todayDistHint.textContent = (hint == null ? "—" : fmt1(hint));
+  }
+
+  // -------------------------
+  // Render/Edit month table
+  // -------------------------
+  function esc(s){
+    return String(s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+
+  function updateKpis(ym, data, dist){
+    const [Y,M] = ym.split("-").map(Number);
+    const dim = daysInMonth(Y,M);
+
+    let sumOdo = 0, sumMan = 0;
+    let work=0, off=0, paid=0, abs=0;
 
     for (let d=1; d<=dim; d++){
-      const date = `${currentYM}-${pad2(d)}`;
-      const day = monthData.days[date] || defaultDay();
+      const date = `${ym}-${pad2(d)}`;
+      const day = data.days[date] || defaultDay();
 
-      const od = distOdo[date];
+      const od = dist[date];
       if (od != null) sumOdo += od;
 
       const mk = safeNum(day.manualKm);
-      if (mk != null) sumManual += mk;
+      if (mk != null) sumMan += mk;
 
       switch(day.status){
         case "work": work++; break;
         case "off": off++; break;
         case "paid": paid++; break;
-        case "sub": sub++; break;
         case "abs": abs++; break;
       }
     }
 
-    elKpiOdoSum.textContent = fmt1(sumOdo);
-    elKpiManualSum.textContent = fmt1(sumManual);
-    elKpiTotal.textContent = fmt1(sumOdo + sumManual);
-
-    // 表示は要望に合わせて「稼働/休日/有休/欠勤」。振休は休日に含めたくない場合があるので、休日側に足しつつメモ表示
-    const offShown = off + sub;
-    elKpiDays.textContent = `${work} / ${offShown} / ${paid} / ${abs}`;
+    kpiOdoSum.textContent = fmt1(sumOdo);
+    kpiManualSum.textContent = fmt1(sumMan);
+    kpiTotal.textContent = fmt1(sumOdo + sumMan);
+    kpiDays.textContent = `${work} / ${off} / ${paid} / ${abs}`;
   }
 
-  // -------------------------
-  // Render day cards
-  // -------------------------
-  function esc(str){
-    return String(str)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#39;");
-  }
+  function buildTable(){
+    tbody.innerHTML = "";
+    const ym = currentYM;
+    const data = monthData;
 
-  function statusBadge(statusKey){
-    const s = STATUS.find(x => x.key === statusKey) || STATUS[0];
-    return `<span class="badge ${s.cls}">${s.label}</span>`;
-  }
+    distOdo = recomputeDistances(ym, data);
+    updateKpis(ym, data, distOdo);
 
-  function buildDayCards(){
-    elDays.innerHTML = "";
-    const [Y, M] = currentYM.split("-").map(Number);
-    const dim = daysInMonth(Y, M);
+    const [Y,M] = ym.split("-").map(Number);
+    const dim = daysInMonth(Y,M);
 
     for (let d=1; d<=dim; d++){
-      const date = `${currentYM}-${pad2(d)}`;
+      const date = `${ym}-${pad2(d)}`;
       const dt = new Date(Y, M-1, d);
-      const w = dt.getDay();
-
-      const day = monthData.days[date] || defaultDay();
+      const w = weekdays[dt.getDay()];
+      const day = data.days[date] || defaultDay();
       const dist = distOdo[date];
 
-      const wrap = document.createElement("div");
-      wrap.className = "day";
-      wrap.id = `day_${date}`;
+      const tr = document.createElement("tr");
 
-      wrap.innerHTML = `
-        <div class="dayTop">
-          <div class="dayTitle">
-            <div class="d">${date}</div>
-            <div class="w ${weekClass(w)}">${weekdays[w]}</div>
-          </div>
-          <div class="statusBar">
-            ${statusBadge(day.status)}
-            <span class="pill">出勤 08:00</span>
-            <span class="pill">距離(差分) <b class="num">${dist == null ? "—" : fmt1(dist)}</b> km</span>
-          </div>
-        </div>
-
-        <div class="dayBody">
-          <div class="grid2">
-            <div>
-              <label>ステータス（タップで変更）</label>
-              <select id="st_${date}">
-                ${STATUS.map(s => `<option value="${s.key}" ${s.key===day.status?"selected":""}>${s.label}</option>`).join("")}
-              </select>
-              <div class="muted small" style="margin-top:6px">
-                休日/有休/振休は「退勤は空でOK」。稼働なら退勤を入れるのが基本。
-              </div>
-            </div>
-
-            <div>
-              <label>退勤</label>
-              <input id="out_${date}" type="time" value="${esc(day.outTime || "")}" placeholder="例：17:30" />
-            </div>
-          </div>
-
-          <div class="grid2">
-            <div>
-              <label>終業時オドメーター</label>
-              <input id="odo_${date}" type="number" step="0.1" placeholder="例：12345.6" value="${day.endOdo ?? ""}" />
-            </div>
-            <div>
-              <label>実走距離（オドメが無い日）</label>
-              <input id="man_${date}" type="number" step="0.1" placeholder="例：12.3" value="${day.manualKm ?? ""}" />
-            </div>
-          </div>
-
-          <div>
-            <label>メモ</label>
-            <input id="note_${date}" type="text" placeholder="例：現場A→B、直行直帰、給油 など" value="${esc(day.note || "")}" />
-          </div>
-        </div>
+      tr.innerHTML = `
+        <td class="col-date num">${date}<div class="muted small">${w}</div></td>
+        <td class="col-st">
+          <select id="st_${date}">
+            ${STATUS.map(s=>`<option value="${s.key}" ${s.key===day.status?"selected":""}>${s.label}</option>`).join("")}
+          </select>
+        </td>
+        <td class="col-time"><input id="in_${date}" type="time" value="${esc(day.inTime||"08:00")}" /></td>
+        <td class="col-time"><input id="out_${date}" type="time" value="${esc(day.outTime||"")}" /></td>
+        <td class="col-num"><input id="odo_${date}" type="number" step="0.1" inputmode="decimal" value="${day.endOdo ?? ""}" /></td>
+        <td class="col-dist right num">${dist==null ? `<span class="muted">—</span>` : `${fmt1(dist)}`}</td>
+        <td class="col-dist right"><input id="man_${date}" type="number" step="0.1" inputmode="decimal" value="${day.manualKm ?? ""}" /></td>
+        <td class="col-note"><input id="note_${date}" type="text" value="${esc(day.note||"")}" placeholder="メモ" /></td>
       `;
-
-      elDays.appendChild(wrap);
+      tbody.appendChild(tr);
 
       // listeners
-      document.getElementById(`st_${date}`).addEventListener("change", (e) => {
+      document.getElementById(`st_${date}`).addEventListener("change", (e)=>{
         setDay(date, { status: e.target.value });
-        // status badge area needs rerender
-        recomputeAndRerender(true);
+        rebuild();
       });
-
-      document.getElementById(`out_${date}`).addEventListener("input", (e) => {
+      document.getElementById(`in_${date}`).addEventListener("input", (e)=>{
+        setDay(date, { inTime: e.target.value });
+      });
+      document.getElementById(`out_${date}`).addEventListener("input", (e)=>{
         setDay(date, { outTime: e.target.value });
       });
-
-      document.getElementById(`odo_${date}`).addEventListener("input", (e) => {
+      document.getElementById(`odo_${date}`).addEventListener("input", (e)=>{
         setDay(date, { endOdo: safeNum(e.target.value) });
-        recomputeAndRerender(true);
+        rebuild();
       });
-
-      document.getElementById(`man_${date}`).addEventListener("input", (e) => {
+      document.getElementById(`man_${date}`).addEventListener("input", (e)=>{
         setDay(date, { manualKm: safeNum(e.target.value) });
-        updateKpis(); // KPIだけ更新でOK
+        updateKpis(currentYM, monthData, distOdo);
       });
-
-      document.getElementById(`note_${date}`).addEventListener("input", (e) => {
+      document.getElementById(`note_${date}`).addEventListener("input", (e)=>{
         setDay(date, { note: e.target.value });
       });
     }
@@ -656,14 +757,26 @@
     monthData.days[date] = { ...prev, ...patch };
   }
 
-  function recomputeAndRerender(rebuild = true){
-    recomputeDistances();
-    updateKpis();
-    if (rebuild) buildDayCards();
+  function rebuild(){
+    buildTable();
+    // today hint refresh
+    const hint = computeTodayHint();
+    todayDistHint.textContent = (hint == null ? "—" : fmt1(hint));
+  }
+
+  function syncEditTo(ym){
+    currentYM = ym;
+    monthData = loadMonth(currentYM);
+
+    editYMLabel.textContent = currentYM;
+    monthPicker.value = currentYM;
+    monthBaseOdo.value = monthData.baseOdo ?? "";
+
+    buildTable();
   }
 
   // -------------------------
-  // CSV
+  // CSV Export
   // -------------------------
   function csvEscape(s){
     const str = String(s);
@@ -674,43 +787,41 @@
   }
 
   function toCsv(){
-    const [Y, M] = currentYM.split("-").map(Number);
-    const dim = daysInMonth(Y, M);
+    const ym = currentYM;
+    const data = monthData;
+    const dist = distOdo;
+
+    const [Y,M] = ym.split("-").map(Number);
+    const dim = daysInMonth(Y,M);
+
     const lines = [];
-    lines.push([
-      "日付","曜日","ステータス","出勤(固定)","退勤","終業時オドメーター","距離(オドメ差分)km","実走距離km","メモ"
-    ].join(","));
+    lines.push(["日付","曜日","区分","出勤","退勤","終業時オドメ","距離(差分)km","実走km","メモ"].join(","));
 
     for (let d=1; d<=dim; d++){
-      const date = `${currentYM}-${pad2(d)}`;
+      const date = `${ym}-${pad2(d)}`;
       const dt = new Date(Y, M-1, d);
       const w = weekdays[dt.getDay()];
-      const fixedIn = "08:00";
-
-      const day = monthData.days[date] || defaultDay();
-      const dist = distOdo[date];
-
-      const stLabel = (STATUS.find(x=>x.key===day.status)||STATUS[0]).label;
+      const day = data.days[date] || defaultDay();
 
       lines.push([
         date,
         w,
-        stLabel,
-        fixedIn,
+        statusLabel(day.status),
+        day.inTime || "08:00",
         day.outTime || "",
         (day.endOdo ?? ""),
-        (dist == null ? "" : fmt1(dist)),
+        (dist[date]==null ? "" : fmt1(dist[date])),
         (day.manualKm ?? ""),
         csvEscape(day.note || "")
       ].join(","));
     }
 
     lines.push("");
-    lines.push(`月初オドメーター(基準),${monthData.baseOdo ?? ""}`);
-    lines.push(`走行距離(オドメ差分合計)km,${elKpiOdoSum.textContent}`);
-    lines.push(`走行距離(実走入力合計)km,${elKpiManualSum.textContent}`);
-    lines.push(`走行距離(総合計)km,${elKpiTotal.textContent}`);
-    lines.push(`稼働/休日/有休/欠勤,${elKpiDays.textContent}`);
+    lines.push(`月初オドメーター(基準),${data.baseOdo ?? ""}`);
+    lines.push(`走行距離(オドメ差分合計)km,${kpiOdoSum.textContent}`);
+    lines.push(`走行距離(実走合計)km,${kpiManualSum.textContent}`);
+    lines.push(`走行距離(総合計)km,${kpiTotal.textContent}`);
+    lines.push(`稼働/休日/有休/欠勤,${kpiDays.textContent}`);
 
     return lines.join("\r\n");
   }
@@ -731,134 +842,117 @@
   // -------------------------
   function backupJson(){
     const payload = {
-      version: 2,
+      version: 3,
       ym: currentYM,
       data: monthData,
       exportedAt: new Date().toISOString()
     };
-    elJsonBox.value = JSON.stringify(payload, null, 2);
+    jsonBox.value = JSON.stringify(payload, null, 2);
   }
 
   function restoreJson(){
-    const raw = elJsonBox.value.trim();
-    if (!raw){
-      alert("復元するJSONが空です。");
-      return;
-    }
+    const raw = jsonBox.value.trim();
+    if (!raw){ alert("復元するJSONが空です。"); return; }
     try{
       const obj = JSON.parse(raw);
       if (!obj || typeof obj !== "object" || !obj.ym || !obj.data){
-        alert("JSON形式が想定と違います。");
-        return;
+        alert("JSON形式が想定と違います。"); return;
       }
       currentYM = obj.ym;
-      elMonthPicker.value = currentYM;
       monthData = obj.data;
-      elBaseOdo.value = monthData.baseOdo ?? "";
-      recomputeAndRerender(true);
+      monthPicker.value = currentYM;
+      editYMLabel.textContent = currentYM;
+      monthBaseOdo.value = monthData.baseOdo ?? "";
+      buildTable();
       saveMonth(currentYM, monthData);
+      loadTodayForm();
       alert("復元しました（保存も完了）。");
-    }catch(e){
+    }catch{
       alert("JSONの解析に失敗しました。");
-    }
-  }
-
-  // -------------------------
-  // Focus navigation (today/prev/next)
-  // -------------------------
-  function setFocused(dateStr){
-    focusedDate = dateStr;
-    const el = document.getElementById(`day_${dateStr}`);
-    if (el){
-      el.scrollIntoView({behavior:"smooth", block:"start"});
-    }
-  }
-
-  function moveFocus(delta){
-    if (!focusedDate){
-      setFocused(`${currentYM}-01`);
-      return;
-    }
-    const [Y,M,D] = focusedDate.split("-").map(Number);
-    const dim = daysInMonth(Y, M);
-    let nd = D + delta;
-    if (nd < 1) nd = 1;
-    if (nd > dim) nd = dim;
-    setFocused(`${currentYM}-${pad2(nd)}`);
-  }
-
-  // -------------------------
-  // Month init
-  // -------------------------
-  function loadAndRender(ym){
-    currentYM = ym;
-    monthData = loadMonth(currentYM);
-    elBaseOdo.value = monthData.baseOdo ?? "";
-    recomputeAndRerender(true);
-
-    // focus: today if in month, else day1
-    const t = todayDateStr();
-    if (t.startsWith(currentYM)){
-      setFocused(t);
-    } else {
-      setFocused(`${currentYM}-01`);
     }
   }
 
   // -------------------------
   // Events
   // -------------------------
-  elMonthPicker.addEventListener("change", () => {
-    if (currentYM){
-      monthData.baseOdo = safeNum(elBaseOdo.value);
-      saveMonth(currentYM, monthData);
+  btnConfirmToday.addEventListener("click", ()=>{
+    const ym = ymFromDate(todayDate);
+    const md = loadMonth(ym);
+    const prev = md.days[todayDate] || defaultDay();
+
+    const next = {
+      ...prev,
+      status: todayStatus,
+      inTime: tIn.value || "08:00",
+      outTime: tOut.value || "",
+      endOdo: safeNum(tEndOdo.value),
+      manualKm: safeNum(tManualKm.value),
+      note: tNote.value || ""
+    };
+
+    md.days[todayDate] = next;
+    saveMonth(ym, md);
+
+    // Refresh today hint + if editing same month, refresh there too
+    loadTodayForm();
+    if (currentYM === ym){
+      monthData = loadMonth(currentYM);
+      monthBaseOdo.value = monthData.baseOdo ?? "";
+      buildTable();
     }
-    loadAndRender(elMonthPicker.value);
-  });
 
-  elBaseOdo.addEventListener("input", () => {
-    recomputeAndRerender(true);
-  });
-
-  btnSaveAll.addEventListener("click", () => {
-    monthData.baseOdo = safeNum(elBaseOdo.value);
-    saveMonth(currentYM, monthData);
     alert("保存しました。");
   });
 
-  btnExportCsv.addEventListener("click", () => {
+  monthPicker.addEventListener("change", ()=>{
+    // auto-save current month base before switching
+    monthData.baseOdo = safeNum(monthBaseOdo.value);
+    saveMonth(currentYM, monthData);
+
+    syncEditTo(monthPicker.value);
+  });
+
+  monthBaseOdo.addEventListener("input", ()=>{
+    rebuild();
+  });
+
+  btnSaveMonth.addEventListener("click", ()=>{
+    monthData.baseOdo = safeNum(monthBaseOdo.value);
+    saveMonth(currentYM, monthData);
+    loadTodayForm();
+    alert("この月を保存しました。");
+  });
+
+  btnExportCsv.addEventListener("click", ()=>{
     downloadText(`kintai_drive_${currentYM}.csv`, toCsv());
   });
 
-  btnBackup.addEventListener("click", () => backupJson());
-  btnRestore.addEventListener("click", () => restoreJson());
+  btnBackup.addEventListener("click", backupJson);
+  btnRestore.addEventListener("click", restoreJson);
 
-  btnClearMonth.addEventListener("click", () => {
+  btnClearMonth.addEventListener("click", ()=>{
     const ok = confirm(`「${currentYM}」のデータを全消去します。よろしいですか？`);
     if (!ok) return;
     localStorage.removeItem(storageKey(currentYM));
     monthData = defaultMonthData();
-    elBaseOdo.value = "";
-    recomputeAndRerender(true);
+    monthBaseOdo.value = "";
+    buildTable();
+    loadTodayForm();
     alert("消去しました。");
   });
-
-  btnToday.addEventListener("click", () => {
-    const t = todayDateStr();
-    if (t.startsWith(currentYM)){
-      setFocused(t);
-    } else {
-      alert("今日の日付はこの月ではありません。月を切り替えてください。");
-    }
-  });
-  btnPrev.addEventListener("click", () => moveFocus(-1));
-  btnNext.addEventListener("click", () => moveFocus(+1));
 
   // -------------------------
   // Boot
   // -------------------------
-  elMonthPicker.value = todayMonthValue();
-  loadAndRender(elMonthPicker.value);
+  todayDateLabel.textContent = todayDate;
+  todayYMLabel.textContent = ymFromDate(todayDate);
+
+  // default edit = this month
+  monthPicker.value = todayMonthValue();
+  syncEditTo(monthPicker.value);
+
+  loadTodayForm();
+  showToday();
 
 })();
 </script>
